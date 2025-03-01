@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jogo do Dinheiro</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      text-align: center;
+    }
+    .container {
+      background: white;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      margin-top: 0;
+      color: #333;
+    }
+    #saldo {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    button {
+      background: #28a745;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+    .alerta {
+      display: none;
+      background: #ffcc00;
+      color: #333;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    /* Formulário de dados para saque */
+    .form-saque {
+      display: none;
+      margin-top: 20px;
+      text-align: left;
+    }
+    .form-saque label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-saque input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    /* Página de compra */
+    #compraPage {
+      display: none;
+      background: white;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    #compraPage h1 {
+      margin-top: 0;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+    textarea {
+      width: 90%;
+      height: 60px;
+      resize: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PÁGINA DO JOGO -->
+  <div class="container" id="jogoPage">
+    <h1>Jogo do Dinheiro</h1>
+    <p>Clique no botão para ganhar dinheiro fictício!</p>
+    <div id="saldo">Saldo: R$ 0,00</div>
+
+    <!-- Botão principal -->
+    <button id="ganharBtn" onclick="ganharDinheiro()">Ganhar Dinheiro</button>
+
+    <!-- Botão de saque (oculto até saldo >= 450) -->
+    <button id="sacarBtn" style="display: none;" onclick="sacarDinheiro()">Sacar Dinheiro</button>
+
+    <!-- Formulário de dados para saque (oculto até saldo >= 450) -->
+    <div class="form-saque" id="formSaque">
+      <label for="nome">Nome Completo:</label>
+      <input type="text" id="nome" placeholder="Seu nome completo" />
+
+      <label for="telefone">Telefone:</label>
+      <input type="text" id="telefone" placeholder="(XX) XXXXX-XXXX" />
+
+      <label for="pix">Chave Pix:</label>
+      <input type="text" id="pix" placeholder="E-mail ou telefone" />
+    </div>
+
+    <!-- Alerta de "comprar item" -->
+    <div class="alerta" id="alertaCompra">
+      Para sacar, você precisa comprar um item de R$ 0,25.
+      <br/>
+      <button onclick="abrirCompra()">Comprar via Pix</button>
+    </div>
+  </div>
+
+  <!-- PÁGINA DE COMPRA -->
+  <div id="compraPage">
+    <h1>Pagamento via Pix</h1>
+    <p>Confirme a compra do item por R$ 0,25.</p>
+    <p>Escaneie o QR Code abaixo ou copie o código Pix.</p>
+    <!-- Substitua "pix_qrcode.png" pela imagem do seu QR Code -->
+    <img src="pix_qrcode.png" alt="QR Code Pix" />
+    <p><b>Código Pix:</b></p>
+    <!-- Substitua pelo seu código Pix real -->
+    <textarea id="codigoPix" readonly>meu.pix@seudominio.com</textarea>
+    <br/>
+    <button onclick="copiarPix()">Copiar Código Pix</button>
+    <br/><br/>
+    <button onclick="confirmarPagamento()">Já Paguei</button>
+  </div>
+
+  <script>
+    let saldo = 0;
+    let compraRealizada = false;
+
+    // Adiciona dinheiro aleatório ao saldo
+    function ganharDinheiro() {
+      saldo += Math.floor(Math.random() * 50) + 10; // Entre 10 e 59
+      atualizarSaldo();
+    }
+
+    // Atualiza o texto do saldo na tela
+    function atualizarSaldo() {
+      document.getElementById("saldo").innerText = "Saldo: R$ " + saldo.toFixed(2);
+
+      // Se saldo >= 450, exibe o botão de saque e o formulário
+      if (saldo >= 450) {
+        document.getElementById("sacarBtn").style.display = "inline-block";
+        document.getElementById("formSaque").style.display = "block";
+      }
+    }
+
+    // Tenta sacar o dinheiro
+    function sacarDinheiro() {
+      // Verifica se o usuário preencheu os dados básicos (opcional, mas recomendado)
+      const nome = document.getElementById("nome").value.trim();
+      const telefone = document.getElementById("telefone").value.trim();
+      const pix = document.getElementById("pix").value.trim();
+
+      if (!nome || !telefone || !pix) {
+        alert("Por favor, preencha todos os dados antes de sacar.");
+        return;
+      }
+
+      // Se não tiver comprado o item, exibe o alerta e pede para comprar
+      if (!compraRealizada) {
+        document.getElementById("alertaCompra").style.display = "block";
+      } else {
+        // Se já comprou, pode sacar
+        alert("Saque realizado com sucesso!");
+      }
+    }
+
+    // Abre a página de compra
+    function abrirCompra() {
+      // Esconde a página do jogo e mostra a de compra
+      document.getElementById("jogoPage").style.display = "none";
+      document.getElementById("compraPage").style.display = "block";
+    }
+
+    // Copia o código Pix para a área de transferência
+    function copiarPix() {
+      let codigoPix = document.getElementById("codigoPix");
+      codigoPix.select();
+      document.execCommand("copy");
+      alert("Código Pix copiado!");
+    }
+
+    // Confirma o pagamento (simulação)
+    function confirmarPagamento() {
+      compraRealizada = true;
+      alert("Pagamento confirmado! Agora você pode sacar.");
+
+      // Volta para a página do jogo
+      document.getElementById("compraPage").style.display = "none";
+      document.getElementById("jogoPage").style.display = "block";
+      // Esconde o alerta de compra
+      document.getElementById("alertaCompra").style.display = "none";
+    }
+  </script>
+</body>
+</html>
